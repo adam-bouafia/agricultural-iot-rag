@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  # App service commented out - run manually with 'make build && make run'
+  # This avoids port conflicts and allows for easier development
+  # app:
+  #   build: .
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - PORT=8080
+  #     - QDRANT_URL=qdrant:6334
+  #     - OLLAMA_URL=http://ollama:11434
+  #     - MQTT_BROKER=tcp://mosquitto:1883
+  #     - EMBEDDING_API_URL=http://ollama:11434
+  #     - EMBEDDING_MODEL=nomic-embed-text
+  #     - LLM_MODEL=llama3.2
+  #     - POSTGRES_DSN=host=postgres user=postgres password=password dbname=agricultural_iot port=5432 sslmode=disable
+  #     - REDIS_URL=redis:6379
+  #   depends_on:
+  #     - qdrant
+  #     - mosquitto
+  #     - postgres
+  #     - redis
+  #   restart: unless-stopped
+  #   networks:
+  #     - agri-network
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+    networks:
+      - agri-network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - agri-network
+    # GPU support (optional - comment out if you don't have NVIDIA GPU)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./deployments/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    restart: unless-stopped
+    networks:
+      - agri-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: agricultural_iot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - agri-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - agri-network
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password123
+      - DOCKER_INFLUXDB_INIT_ORG=agurotech
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensors
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-auth-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    restart: unless-stopped
+    networks:
+      - agri-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - influxdb
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - agri-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployments/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    networks:
+      - agri-network
+
+volumes:
+  qdrant_data:
+  ollama_data:
+  mosquitto_data:
+  mosquitto_logs:
+  postgres_data:
+  redis_data:
+  influxdb_data:
+  grafana_data:
+  prometheus_data:
+
+networks:
+  agri-network:
+    driver: bridge

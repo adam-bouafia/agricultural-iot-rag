@@ -1,0 +1,245 @@
+{
+  "dashboard": {
+    "title": "Agricultural IoT - AI Performance & Analytics",
+    "tags": ["agriculture", "ai", "llm", "performance"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "AI Decision Requests Overview",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "targets": [{
+          "expr": "decision_requests_total",
+          "legendFormat": "Total Decisions",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Decisions (Last Hour)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "targets": [{
+          "expr": "increase(decision_requests_total[1h])",
+          "legendFormat": "Last Hour",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Avg Response Time (5m)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "targets": [{
+          "expr": "rate(decision_request_duration_seconds_sum[5m]) / rate(decision_request_duration_seconds_count[5m])",
+          "legendFormat": "Avg Time",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "decimals": 2,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 2, "color": "yellow"},
+                {"value": 5, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Requests/min (Current)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+        "targets": [{
+          "expr": "rate(decision_requests_total[1m]) * 60",
+          "legendFormat": "Req/min",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqpm",
+            "decimals": 1
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "AI Decision Request Rate Over Time",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "expr": "rate(decision_requests_total[5m]) * 60",
+            "legendFormat": "Requests/min (5m avg)",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(decision_requests_total[1m]) * 60",
+            "legendFormat": "Requests/min (1m avg)",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "reqpm", "label": "Requests per minute"},
+          {"format": "short"}
+        ],
+        "xaxis": {"mode": "time"},
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {"show": true, "alignAsTable": true, "values": true, "avg": true, "current": true}
+      },
+      {
+        "id": 6,
+        "title": "Response Time Distribution",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(decision_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile (median)",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.90, rate(decision_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "90th percentile",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(decision_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile",
+            "refId": "C"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(decision_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "99th percentile",
+            "refId": "D"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Response Time"},
+          {"format": "short"}
+        ],
+        "xaxis": {"mode": "time"},
+        "lines": true,
+        "fill": 0,
+        "linewidth": 2,
+        "legend": {"show": true, "alignAsTable": true, "values": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 7,
+        "title": "Decision Response Time (Gauge)",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 13},
+        "targets": [{
+          "expr": "rate(decision_request_duration_seconds_sum[5m]) / rate(decision_request_duration_seconds_count[5m])",
+          "legendFormat": "Avg Response",
+          "refId": "A"
+        }],
+        "options": {
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "min": 0,
+            "max": 10,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 1, "color": "yellow"},
+                {"value": 3, "color": "orange"},
+                {"value": 5, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Request Volume Heatmap (Hourly)",
+        "type": "heatmap",
+        "gridPos": {"h": 8, "w": 16, "x": 8, "y": 13},
+        "targets": [{
+          "expr": "sum(increase(decision_requests_total[1h])) by (hour)",
+          "legendFormat": "{{hour}}",
+          "format": "heatmap",
+          "refId": "A"
+        }],
+        "options": {
+          "calculate": true
+        }
+      },
+      {
+        "id": 9,
+        "title": "Cumulative Decision Requests",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 21},
+        "targets": [{
+          "expr": "decision_requests_total",
+          "legendFormat": "Total Decisions Made",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "short", "label": "Total Requests"},
+          {"format": "short"}
+        ],
+        "xaxis": {"mode": "time"},
+        "lines": true,
+        "fill": 2,
+        "linewidth": 2,
+        "steppedLine": false
+      },
+      {
+        "id": 10,
+        "title": "Decision Request Success Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 21},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{path=\"/api/v1/decision\", status=\"200\"}[5m]) / rate(http_requests_total{path=\"/api/v1/decision\"}[5m]) * 100",
+            "legendFormat": "Success Rate %",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "label": "Success Rate", "min": 0, "max": 100},
+          {"format": "short"}
+        ],
+        "xaxis": {"mode": "time"},
+        "lines": true,
+        "fill": 3,
+        "linewidth": 2,
+        "thresholds": [
+          {"value": 95, "colorMode": "critical", "fill": true, "line": true, "op": "lt"}
+        ]
+      }
+    ]
+  }
+}

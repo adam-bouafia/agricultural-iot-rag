@@ -1,0 +1,140 @@
+{
+  "dashboard": {
+    "title": "Agricultural IoT - Sensor Monitoring",
+    "tags": ["agriculture", "sensors", "iot"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Sensor Readings by Field",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 0},
+        "targets": [{
+          "expr": "sensor_readings_total",
+          "legendFormat": "{{field_id}}",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "orientation": "auto",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Sensor Reading Rate (Last Hour)",
+        "type": "graph",
+        "gridPos": {"h": 10, "w": 24, "x": 0, "y": 6},
+        "targets": [{
+          "expr": "rate(sensor_readings_total[5m]) * 60",
+          "legendFormat": "{{field_id}} - {{device_id}}",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "rpm", "label": "Readings per minute"},
+          {"format": "short"}
+        ],
+        "xaxis": {"mode": "time"},
+        "lines": true,
+        "fill": 2,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "alignAsTable": true,
+          "values": true,
+          "avg": true,
+          "current": true,
+          "max": true,
+          "min": true
+        },
+        "tooltip": {"shared": true, "sort": 2}
+      },
+      {
+        "id": 3,
+        "title": "MQTT Messages Received Over Time",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [{
+          "expr": "rate(mqtt_messages_received_total[5m]) * 60",
+          "legendFormat": "Messages/min",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "rpm"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 3,
+        "linewidth": 2
+      },
+      {
+        "id": 4,
+        "title": "Sensor Data Points Received",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [{
+          "expr": "rate(sensor_data_received_total[5m]) * 60",
+          "legendFormat": "Data points/min",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "rpm"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 3,
+        "linewidth": 2
+      },
+      {
+        "id": 5,
+        "title": "Active Sensors (Reporting in Last 5m)",
+        "type": "table",
+        "gridPos": {"h": 10, "w": 12, "x": 0, "y": 24},
+        "targets": [{
+          "expr": "count(rate(sensor_readings_total[5m]) > 0) by (field_id, device_id)",
+          "legendFormat": "{{field_id}} - {{device_id}}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }],
+        "transformations": [{
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "field_id": "Field ID",
+              "device_id": "Device ID",
+              "Value": "Active"
+            }
+          }
+        }]
+      },
+      {
+        "id": 6,
+        "title": "Sensor Reading Frequency by Device",
+        "type": "bargauge",
+        "gridPos": {"h": 10, "w": 12, "x": 12, "y": 24},
+        "targets": [{
+          "expr": "rate(sensor_readings_total[5m]) * 60",
+          "legendFormat": "{{device_id}}",
+          "refId": "A"
+        }],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "rpm",
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "dashboard": {
+    "title": "Agricultural IoT Monitoring",
+    "tags": ["agriculture", "iot", "sensors"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Soil Moisture by Field",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sensor_readings_total{measurement=\"soil_moisture\"}",
+            "legendFormat": "{{field_id}}"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Temperature by Field",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "sensor_readings_total{measurement=\"temperature\"}",
+            "legendFormat": "{{field_id}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "AI Decision Requests",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "decision_requests_total"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Average Response Time",
+        "type": "gauge",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(decision_request_duration_seconds_sum[5m]) / rate(decision_request_duration_seconds_count[5m])"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Sensor Data Received",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "sensor_data_received_total"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "MQTT Messages",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 8},
+        "targets": [
+          {
+            "expr": "mqtt_messages_received_total"
+          }
+        ]
+      }
+    ]
+  }
+}
